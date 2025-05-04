@@ -1,16 +1,19 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Arrays;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 public class swing{
    private JFrame mainFrame;
    private JLabel headerLabel;
    private JPanel controlPanel;
    //Calculator Variables
    private JTextField[] numberInput;
-   private JButton calcOption;
+   private JSpinner calcOption;
    private JLabel equalsLabel;
-   private final String[] options = {"+","-","*","/","^","√"};
-   private int optionNum;
+   private final String[] options = {" + "," - "," * "," / "," ^ "," √ "};
+   private String optionSelect;
    public static void main(String[] args){// Create Window
       swing calc = new swing();
       calc.calcWindow();
@@ -27,17 +30,17 @@ public class swing{
       mainFrame.setVisible(true);
    }private void calcWindow(){// Calculator Window
       // Set Variables
+      mainFrame.setTitle("Azeez's Calculator");;
       headerLabel.setText("Calculator");
+      optionSelect=" + ";
       numberInput = new JTextField[]{new JTextField(3),new JTextField(3)};
-      calcOption = new JButton("+");
-      optionNum = 1;
+      calcOption = new JSpinner(new SpinnerListModel(Arrays.asList(options).subList(0, 6)));
+      calcOption.addChangeListener(new ChangeListener() {public void stateChanged(ChangeEvent e) {optionSelect=""+((JSpinner)e.getSource()).getValue();}});
       equalsLabel = new JLabel("NaN");
-      calcOption.setActionCommand("symbol");
-      calcOption.addActionListener(new ButtonClickListener());
       // Equals Button
-      JButton equalsButton = new JButton("=");
+      JButton equalsButton = new JButton(" = ");
       equalsButton.setActionCommand("equals");
-      equalsButton.addActionListener(new ButtonClickListener());
+      equalsButton.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {equalsLabel.setText(calculate());}});
       // Add to Control Panel
       controlPanel.add(numberInput[0]);
       controlPanel.add(calcOption);
@@ -50,25 +53,16 @@ public class swing{
       try {
          x = Float.parseFloat(numberInput[0].getText());
          y = Float.parseFloat(numberInput[1].getText());
-         switch(calcOption.getText()){
-            case "+" -> z = x + y;
-            case "-" -> z = x - y ;
-            case "*" -> z = x * y;
-            case "/" -> z = x / y;
-            case "^" -> z = Math.pow(x, y);
-            case "√" -> z = Math.pow(x, 1.0/y);
-            default -> {return "An Error Occured.";}
+         switch(optionSelect){
+            case " + " -> z = x + y;
+            case " - " -> z = x - y ;
+            case " * " -> z = x * y;
+            case " / " -> z = x / y;
+            case " ^ " -> z = Math.pow(x, y);
+            case " √ " -> z = Math.pow(x, 1.0/y);
+            default -> {return "NaN";}
          }
-      }catch (Exception e){return "Not a number.";}
+      }catch (Exception e){return "NaN";}
       return "" + z;
-   }private class ButtonClickListener implements ActionListener{// Equals Text
-      public void actionPerformed(ActionEvent e) {
-          switch (e.getActionCommand()) {
-              case "symbol" -> {
-                  calcOption.setText(options[optionNum++]);
-                  if(optionNum >= options.length) optionNum = 0;
-               }case "equals" -> equalsLabel.setText(calculate());
-          }
-      }		
    }
 }
