@@ -1,18 +1,17 @@
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Arrays;
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 public class swing{
+   // Window Variables
    private JFrame mainFrame;
    private JLabel headerLabel;
    private JPanel controlPanel;
-   //Calculator Variables
+   // Calculator Variables
    private JTextField[] numberInput;
-   private JSpinner calcOption;
+   private JComboBox calcOption;
+   private JPanel equalsPanel;
    private JLabel equalsLabel;
-   private final String[] options = {" + "," - "," * "," / "," ^ "," √ "};
+   private final String[] options = {"+","-","*","/","^","√","sin(θ)","cos(θ)","tan(θ)","log(x)","ln(x)"};
    private String optionSelect;
    public static void main(String[] args){// Create Window
       swing calc = new swing();
@@ -32,21 +31,33 @@ public class swing{
       // Set Variables
       mainFrame.setTitle("Azeez's Calculator");;
       headerLabel.setText("Calculator");
-      optionSelect=" + ";
       numberInput = new JTextField[]{new JTextField(3),new JTextField(3)};
-      calcOption = new JSpinner(new SpinnerListModel(Arrays.asList(options).subList(0, 6)));
-      calcOption.addChangeListener(new ChangeListener() {public void stateChanged(ChangeEvent e) {optionSelect=""+((JSpinner)e.getSource()).getValue();}});
+      // Operation Selector
+      calcOption = new JComboBox(new DefaultComboBoxModel(options));
+      calcOption.setSelectedIndex(0);
+      calcOption.addActionListener(new ActionListener() {
+         public void actionPerformed(ActionEvent e) {
+            optionSelect=""+calcOption.getSelectedItem();
+            for(int i=6;i<=options.length;i++){// Checks if it is trig or log
+               if(i==options.length) {numberInput[1].setVisible(true); break;}
+               if(optionSelect.equals(options[i])) {numberInput[1].setVisible(false); break;}
+            }equalsLabel.setText(equalsLabel.getText()+"");
+            mainFrame.revalidate();// Resets Frame
+         }
+      });
+      optionSelect="+";
+      // Equals Button and Answer
+      equalsPanel = new JPanel();
       equalsLabel = new JLabel("NaN");
-      // Equals Button
       JButton equalsButton = new JButton(" = ");
-      equalsButton.setActionCommand("equals");
       equalsButton.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {equalsLabel.setText(calculate());}});
       // Add to Control Panel
+      mainFrame.add(equalsPanel);
       controlPanel.add(numberInput[0]);
       controlPanel.add(calcOption);
       controlPanel.add(numberInput[1]);
-      controlPanel.add(equalsButton);
-      controlPanel.add(equalsLabel);
+      equalsPanel.add(equalsButton);
+      equalsPanel.add(equalsLabel);
       mainFrame.setVisible(true);  
    }private String calculate(){// Calculations
       double x,y,z;
@@ -54,15 +65,17 @@ public class swing{
          x = Float.parseFloat(numberInput[0].getText());
          y = Float.parseFloat(numberInput[1].getText());
          switch(optionSelect){
-            case " + " -> z = x + y;
-            case " - " -> z = x - y ;
-            case " * " -> z = x * y;
-            case " / " -> z = x / y;
-            case " ^ " -> z = Math.pow(x, y);
-            case " √ " -> z = Math.pow(x, 1.0/y);
+            case "+" -> z = x + y;
+            case "-" -> z = x - y;
+            case "*" -> z = x * y;
+            case "/" -> z = x / y;
+            case "^" -> z = Math.pow(x, y);
+            case "√" -> z = Math.pow(x, 1.0/y);
+            case "sin(θ)","tan(θ)","log(x)","ln(x)" -> z = x;
+            case "cos(θ)" -> z = x;
             default -> {return "NaN";}
          }
       }catch (Exception e){return "NaN";}
-      return "" + z;
+      return String.format("%.5f",z);
    }
 }
