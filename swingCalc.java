@@ -26,13 +26,11 @@ public class swingCalc{
     }// Calculator
     private double sum;
     private String equation;
-    private String lastUsedOperation;
     private JTextField inputNumber;
     JLabel equalsLabel;
     private void calcWindow(){
-        sum=0;
-        equation="";
-        lastUsedOperation = "";
+        sum = 0;
+        equation = "";
         inputNumber = new JTextField(3);
         // Operations
         JButton plus = new JButton("+");
@@ -57,45 +55,35 @@ public class swingCalc{
         JButton equalsButton = new JButton("=");
         equalsLabel = new JLabel("Text");
         equalsButton.addActionListener(new Operation());
-        equalsButton.setActionCommand("=");
+        equalsButton.setActionCommand("");
         bottomPanel.add(equalsButton);
         bottomPanel.add(equalsLabel);
         mainFrame.setVisible(true);
-    }private class Operation implements ActionListener{
+    }
+    private class Operation implements ActionListener{
         public void actionPerformed(ActionEvent e) {
             try {
-                calculate(lastUsedOperation, Double.parseDouble(inputNumber.getText()));
-                equation+=lastUsedOperation+" "+inputNumber.getText();
+                equation += inputNumber.getText() + " " + e.getActionCommand() + " ";
                 equalsLabel.setText(equation);
-                if(e.getActionCommand().equals("=")) {
-                    equalsLabel.setText(equation+" = "+sum);
-                    sum=0;
-                    equation="";
-                }else lastUsedOperation = e.getActionCommand();
-                inputNumber.setText("");
+                if(e.getActionCommand().equals("")) {
+                    sum = calc(equation);
+                    equalsLabel.setText(equation + "= " + sum);
+                    sum = 0;
+                    equation = "";
+                }inputNumber.setText("");
             }catch (Exception a) {System.out.print("ds");} 	
         }		
-     }private String calculate(String option,double x){// Calculations
-        double y=0,z=0;
-        try {
-           switch(option){// Choose Operation
-              case "+" -> sum += x;
-              case "-" -> sum -= x;
-              case "*" -> sum *= x;
-              case "/" -> sum = sum / x;
-              case "^" -> z = Math.pow(x, 2);
-              case "√" -> z = Math.pow(x, 1.0/2.0);
-              case "sin(θ)" -> z = Math.sin(x);
-              case "cos(θ)" -> z = Math.cos(x);
-              case "tan(θ)" -> z = Math.tan(x);
-              case "sinh(θ)" -> z = Math.sinh(x);
-              case "cosh(θ)" -> z = Math.cosh(x);
-              case "tanh(θ)" -> z = Math.tanh(x);
-              case "log(x)" -> z = Math.log10(x);
-              case "ln(x)" -> z = Math.log(x);
-              case "" -> z = x;
-              default -> {return "NaN";}
-           }return "" + Math.round(z*10000.0)/10000.0;
-        }catch (NumberFormatException | NullPointerException e){return "NaN";}
+     }private double calc(String equations){
+        String[] eq = equations.split("\\s");
+        double s=Double.parseDouble(eq[0]);
+        for(int i=1;i<eq.length;i+=2){
+            switch(eq[i]){
+                case "*"->s*=Double.parseDouble(eq[i+1]);
+                case "/"->s/=Double.parseDouble(eq[i+1]);
+                case "+"->s+=Double.parseDouble(eq[i+1]);
+                case "-"->s-=Double.parseDouble(eq[i+1]);
+            }
+        }
+        return s;
      }
 }
