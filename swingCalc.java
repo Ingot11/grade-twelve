@@ -24,63 +24,53 @@ public class swingCalc{
         mainFrame.add(headerPanel);
         mainFrame.add(middlePanel);
         mainFrame.add(bottomPanel);
-    }// Calculator
+    }// Calculator Variables
     private String equation;
     private JLabel equalsLabel;
     private JTextField inputNumber;
-    private void calcWindow(){
+    private void calcWindow(){// Calculator Constructor
         equation = "";
+        lastSymbol = false;
         inputNumber = new JTextField(3);
         headerPanel.add(inputNumber);
-        // Simple Operations : +, -, *, /, ^
+        // Simple Operations : +, -, *, /, ^, √
         JButton plus = new JButton("+");
-        plus.setActionCommand("+");
-        plus.addActionListener((ActionEvent e) -> {mainOperation(e);});
+        plus.addActionListener((ActionEvent e) -> {mainOperation("+");});
         JButton minus = new JButton("-");
-        minus.setActionCommand("-");
-        minus.addActionListener((ActionEvent e) -> {mainOperation(e);});
+        minus.addActionListener((ActionEvent e) -> {mainOperation("-");});
         JButton multiply = new JButton("*");
-        multiply.setActionCommand("*");
-        multiply.addActionListener((ActionEvent e) -> {mainOperation(e);});
+        multiply.addActionListener((ActionEvent e) -> {mainOperation("*");});
         JButton divide = new JButton("/");
-        divide.setActionCommand("/");
-        divide.addActionListener((ActionEvent e) -> {mainOperation(e);});
+        divide.addActionListener((ActionEvent e) -> {mainOperation("/");});
         JButton power = new JButton("^");
-        power.setActionCommand("^");
-        power.addActionListener((ActionEvent e) -> {mainOperation(e);});
+        power.addActionListener((ActionEvent e) -> {mainOperation("^");});
+        JButton root = new JButton("√");
+        root.addActionListener((ActionEvent e) -> {mainOperation("√");});
         // Trigonometry : sin(θ), cos(θ), tan(θ), sinh(θ), cosh(θ), tanh(θ)
         JButton sin = new JButton("sin(θ)");
-        sin.setActionCommand("sin");
-        sin.addActionListener((ActionEvent e) -> {symbolOperation(e);});
+        sin.addActionListener((ActionEvent e) -> {symbolOperation("sin");});
         sin.setVisible(false);
         JButton cos = new JButton("cos(θ)");
-        cos.setActionCommand("cos");
-        cos.addActionListener((ActionEvent e) -> {symbolOperation(e);});
+        cos.addActionListener((ActionEvent e) -> {symbolOperation("cos");});
         cos.setVisible(false);
         JButton tan = new JButton("tan(θ)");
-        tan.setActionCommand("tan");
-        tan.addActionListener((ActionEvent e) -> {symbolOperation(e);});
+        tan.addActionListener((ActionEvent e) -> {symbolOperation("tan");});
         tan.setVisible(false);
         JButton sinh = new JButton("sinh(θ)");
-        sinh.setActionCommand("sinh");
-        sinh.addActionListener((ActionEvent e) -> {symbolOperation(e);});
+        sinh.addActionListener((ActionEvent e) -> {symbolOperation("sinh");});
         sinh.setVisible(false);
         JButton cosh = new JButton("cosh(θ)");
-        cosh.setActionCommand("cosh");
-        cosh.addActionListener((ActionEvent e) -> {symbolOperation(e);});
+        cosh.addActionListener((ActionEvent e) -> {symbolOperation("cosh");});
         cosh.setVisible(false);
         JButton tanh = new JButton("tanh(θ)");
-        tanh.setActionCommand("tanh");
-        tanh.addActionListener((ActionEvent e) -> {symbolOperation(e);});
+        tanh.addActionListener((ActionEvent e) -> {symbolOperation("tanh");});
         tanh.setVisible(false);
         // Other Operations : log(x), ln(x)
         JButton log = new JButton("log(x)");
-        log.setActionCommand("log");
-        log.addActionListener((ActionEvent e) -> {symbolOperation(e);});
+        log.addActionListener((ActionEvent e) -> {symbolOperation("log");});
         log.setVisible(false);
         JButton ln = new JButton("ln(x)");
-        ln.setActionCommand("ln");
-        ln.addActionListener((ActionEvent e) -> {symbolOperation(e);});
+        ln.addActionListener((ActionEvent e) -> {symbolOperation("ln");});
         ln.setVisible(false);
         // Choose type of Operation
         JComboBox operationSelector = new JComboBox(new String[]{"Operations","Trigonometry","Other"});
@@ -92,6 +82,7 @@ public class swingCalc{
             multiply.setVisible(false);
             divide.setVisible(false);
             power.setVisible(false);
+            root.setVisible(false);
             sin.setVisible(false);
             cos.setVisible(false);
             tan.setVisible(false);
@@ -107,6 +98,7 @@ public class swingCalc{
                     multiply.setVisible(true);
                     divide.setVisible(true);
                     power.setVisible(true);
+                    root.setVisible(true);
                 }case 1 -> {
                     sin.setVisible(true);
                     cos.setVisible(true);
@@ -127,6 +119,7 @@ public class swingCalc{
         middlePanel.add(multiply);
         middlePanel.add(divide);
         middlePanel.add(power);
+        middlePanel.add(root);
         middlePanel.add(sin);
         middlePanel.add(cos);
         middlePanel.add(tan);
@@ -138,25 +131,30 @@ public class swingCalc{
         // Equals Button and Text
         JButton equalsButton = new JButton("=");
         equalsLabel = new JLabel("Text");
-        equalsButton.setActionCommand("");
-        equalsButton.addActionListener((ActionEvent e) -> {mainOperation(e);});
+        equalsButton.addActionListener((ActionEvent e) -> {mainOperation("");});
         bottomPanel.add(equalsButton);
         bottomPanel.add(equalsLabel);
         mainFrame.setVisible(true);
-    }private void mainOperation(ActionEvent e){ try {// Input Operation into equation
-        equalsLabel.setText(equation += Double.valueOf(inputNumber.getText()) + " " + e.getActionCommand() + " ");
-        if(e.getActionCommand().equals("")) {// When equals is pressed, gives final answer
+    }private boolean lastSymbol;
+    private void mainOperation(String e){ try {// Input Operation into equation
+        if(!lastSymbol) equation += Double.valueOf(inputNumber.getText()) + " ";
+        else lastSymbol=false;
+        equalsLabel.setText(equation += e + " ");
+        if(e.equals("")) {// When equals is pressed, gives final answer
             equalsLabel.setText(equation + "= " + calc(equation));
             equation = "";
         }inputNumber.setText("");
         }catch (NumberFormatException a) {System.out.print("An error occured.");} 			
-    }private void symbolOperation(ActionEvent e){// Input Trig or other
-        equalsLabel.setText(equation += e.getActionCommand() + " " + inputNumber.getText() + " ");
-        inputNumber.setText("");
+    }private void symbolOperation(String e){// Input Trig or other
+        if(!lastSymbol){
+            equalsLabel.setText(equation += e + " " + inputNumber.getText() + " ");
+            inputNumber.setText("");
+            lastSymbol=true;
+        }
     }private double calc(String equations){// Get Equation into sum
         ArrayList<String> answer = new ArrayList<>(Arrays.asList(equations.split("\\s")));
         answer=doOperation(answer, new String[]{"sin", "cos", "tan", "sinh", "cosh", "tanh" ,"log" ,"ln"});
-        answer=doOperation(answer, new String[]{"^"});
+        answer=doOperation(answer, new String[]{"^","√"});
         answer=doOperation(answer, new String[]{"*", "/"});
         answer=doOperation(answer, new String[]{"+", "-"});
         return Double.parseDouble(answer.get(0));
@@ -170,12 +168,13 @@ public class swingCalc{
                         double x=Double.parseDouble(list.get(i + 1)), y=0;
                         if(!Arrays.equals(options, new String[]{"sin", "cos", "tan", "sinh", "cosh", "tanh" ,"log" ,"ln"})){
                             y=Double.parseDouble(list.get(i - 1));
-                        }switch(list.get(i)){
+                        }switch(list.get(i)){// Does Calculation
                             case "+" -> list.set(i, "" + (y + x));
                             case "-" -> list.set(i, "" + (y - x));
                             case "*" -> list.set(i, "" + (y * x));
                             case "/" -> list.set(i, "" + (y / x));
                             case "^" -> list.set(i, "" + Math.pow(x, y));
+                            case "√" -> list.set(i, "" + Math.pow(x, 1.0/y));
                             case "sin" -> list.set(i, "" + Math.sin(x));
                             case "cos" -> list.set(i, "" + Math.cos(x));
                             case "tan" -> list.set(i, "" + Math.tan(x));
