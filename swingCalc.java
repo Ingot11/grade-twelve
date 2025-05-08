@@ -9,8 +9,8 @@ public class swingCalc{
     private final JPanel middlePanel;
     private final JPanel bottomPanel;
     public static void main(String[] args){// Call Window
-        swingCalc calc = new swingCalc();
-        calc.calcWindow();
+        swingCalc logs = new swingCalc();
+        logs.loginWindow();
     }public swingCalc(){// Window Constructor
         // Set Main Frame
         mainFrame = new JFrame("Azeez's SWING Tester");
@@ -25,12 +25,51 @@ public class swingCalc{
         mainFrame.add(middlePanel);
         mainFrame.add(bottomPanel);
     }
+    // Login Details
+    private int fails = 1;
+    private void loginWindow(){
+        mainFrame.setSize(400,250);
+        ArrayList<String> users = new ArrayList<>();
+        users.add("test");
+        // Username and Password
+        JTextField username = new JTextField(4);
+        JTextField password = new JTextField(4);
+        // Login Button
+        JButton login = new JButton("Login.");
+        JLabel loggedIn = new JLabel("Not logged in.");
+        login.addActionListener((ActionEvent e) -> {
+            if(fails==0) return;
+            for(String i:users){
+                if(username.getText().equals(i)){
+                    loggedIn.setText("Logged in.");
+                    JOptionPane.showMessageDialog(mainFrame,"Press OK to open the calculator.");
+                    swingCalc calc = new swingCalc();
+                    calc.calcWindow();
+                    fails = 0;
+                    break;
+                }
+            }if(fails!=0){
+                loggedIn.setText((3-fails)+" attempts left.");
+                if (fails++ >= 3){
+                    JOptionPane.showMessageDialog(mainFrame,"You ran out of login attempts.\nPress OK to leave the program.");
+                    System.exit(0);
+                }
+            }
+        });
+        middlePanel.add(new JLabel("Username:"));
+        middlePanel.add(username);
+        middlePanel.add(new JLabel("Password:"));
+        middlePanel.add(password);
+        bottomPanel.add(login);
+        bottomPanel.add(loggedIn);
+        mainFrame.setVisible(true);
+    }
     // Calculator Variables
     private String equation;
     private boolean lastSymbol;
     private JLabel equalsLabel;
     private JTextField inputNumber;
-    private void calcWindow(){// Calculator Constructor
+    private void calcWindow(){ // Calculator Constructor
         equation = "";
         lastSymbol = true;
         inputNumber = new JTextField(3);
@@ -79,36 +118,24 @@ public class swingCalc{
         operationSelector.setSelectedIndex(0);
         operationSelector.addActionListener((ActionEvent e) -> {
             // Hides all at start
-            plus.setVisible(false);
-            minus.setVisible(false);
-            multiply.setVisible(false);
-            divide.setVisible(false);
-            power.setVisible(false);
-            root.setVisible(false);
-            sin.setVisible(false);
-            cos.setVisible(false);
-            tan.setVisible(false);
-            sinh.setVisible(false);
-            cosh.setVisible(false);
-            tanh.setVisible(false);
-            log.setVisible(false);
-            ln.setVisible(false);
-            switch(operationSelector.getSelectedIndex()){// Choose which is visible
-                case 0 -> {// Operations
+            for(Component component : middlePanel.getComponents()) component.setVisible(false);
+            operationSelector.setVisible(true);
+            switch(operationSelector.getSelectedIndex()){ // Choose which is visible
+                case 0 -> { // Operations
                     plus.setVisible(true);
                     minus.setVisible(true);
                     multiply.setVisible(true);
                     divide.setVisible(true);
                     power.setVisible(true);
                     root.setVisible(true);
-                }case 1 -> {// Trigonometry
+                }case 1 -> { // Trigonometry
                     sin.setVisible(true);
                     cos.setVisible(true);
                     tan.setVisible(true);
                     sinh.setVisible(true);
                     cosh.setVisible(true);
                     tanh.setVisible(true);
-                }case 2 -> {// Other
+                }case 2 -> { // Other
                     log.setVisible(true);
                     ln.setVisible(true);
                 }
@@ -138,22 +165,22 @@ public class swingCalc{
         bottomPanel.add(equalsLabel);
         mainFrame.setVisible(true);
     }private void mainOperation(String operation){
-        try {// Input Operation into equation
+        try { // Input Operation into equation
             if(lastSymbol) equation += Double.valueOf(inputNumber.getText()) + " ";
             else lastSymbol = true;
             equalsLabel.setText(equation += operation + " ");
-            if(operation.equals("")) {// When equals is pressed, gives final answer
+            if(operation.equals("")) { // When equals is pressed, gives final answer
                 equalsLabel.setText(equation + "= " + calculate());
                 equation = "";
             }inputNumber.setText("");
         }catch (NumberFormatException e) {}
-    }private void symbolOperation(String operation){// Input Trig or other
+    }private void symbolOperation(String operation){ // Input Trig or other
         try{if(lastSymbol){
             equalsLabel.setText(equation += operation + " " + Double.valueOf(inputNumber.getText()) + " ");
             inputNumber.setText("");
             lastSymbol = false;
         }}catch (NumberFormatException e) {} 
-    }private double calculate(){// Get Equation into sum
+    }private double calculate(){ // Get Equation into sum
         ArrayList<String> answer = new ArrayList<>(Arrays.asList(equation.split("\\s")));
         for(String[] options : new String[][]{{"sin", "cos", "tan", "sinh", "cosh", "tanh" ,"log" ,"ln"}, {"√"}, {"^"}, {"*", "/"}, {"+", "-"}}) {
             boolean leave = true;
@@ -169,7 +196,7 @@ public class swingCalc{
                         case "-" -> sum = y - x;
                         case "*" -> sum = y * x;
                         case "/" -> sum = y / x;
-                        case "^" -> sum = Math.pow(x, y);
+                        case "^" -> sum = Math.pow(y, x);
                         case "√" -> sum = Math.pow(x, 1.0/y);
                         // Trig and Log
                         case "sin" -> sum = Math.sin(x);
