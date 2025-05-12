@@ -30,8 +30,7 @@ public class swingCalc{
         mainFrame.setSize(400,250);
         ArrayList<String> users = new ArrayList<>();
         String line;
-        try{ // Add acccounts from users.txt
-            BufferedReader buffRead = new BufferedReader(new FileReader("users.txt"));
+        try(BufferedReader buffRead = new BufferedReader(new FileReader("users.txt"))){ // Add acccounts from users.txt
             while ((line=buffRead.readLine()) != null) users.add(line);
             buffRead.close();
         }catch (FileNotFoundException e) {System.out.println("File not found");}
@@ -50,7 +49,7 @@ public class swingCalc{
                     loggedIn.setText("Logged in.");
                     JOptionPane.showMessageDialog(mainFrame,"Press OK to open the calculator.");
                     swingCalc calc = new swingCalc();
-                    calc.calcWindow();
+                    calc.normalCalculator();
                     fails = 0;
                     break;
                 }
@@ -67,8 +66,7 @@ public class swingCalc{
             for(String i:users) if(username.getText().equals(i)){
                 loggedIn.setText(username.getText() + " is already an option.");
                 return;
-            }try{
-                BufferedWriter buffWrite = new BufferedWriter(new FileWriter("users.txt"));
+            }try(BufferedWriter buffWrite = new BufferedWriter(new FileWriter("users.txt"))){
                 for (String item:users) buffWrite.write(item + "\n");
                 buffWrite.write(username.getText());
                 users.add(username.getText());
@@ -91,7 +89,7 @@ public class swingCalc{
     private JLabel equalsLabel;
     private JLabel equationLabel;
     private JTextField inputNumber;
-    private void calcWindow(){ // Calculator Constructor
+    private void normalCalculator(){ // Calculator Constructor
         equation = "";
         lastSymbol = true;
         headerPanel.add(inputNumber = new JTextField(3));
@@ -121,17 +119,13 @@ public class swingCalc{
         // Choose type of Operation
         JComboBox operationSelector = new JComboBox(new String[]{"Operations","Trigonometry","Other"});
         operationSelector.setSelectedIndex(0);
-        operationSelector.addActionListener((ActionEvent e) -> {
-            // Hides all at start
+        operationSelector.addActionListener((ActionEvent e) -> { // Hides all at start
             for(Component component : middlePanel.getComponents()) component.setVisible(false);
             operationSelector.setVisible(true);
             switch(operationSelector.getSelectedIndex()){ // Choose which is visible
-                // Operations
-                case 0 -> {for(JButton i : operates) i.setVisible(true);}
-                // Trigonometry
-                case 1 -> {for(JButton i : trig) i.setVisible(true);}
-                // Other
-                case 2 -> {for(JButton i : logarithims) i.setVisible(true);}
+                case 0 /*Operations*/ -> {for(JButton i : operates) i.setVisible(true);}
+                case 1 /*Trigonometry*/ -> {for(JButton i : trig) i.setVisible(true);}
+                case 2 /*Other*/ -> {for(JButton i : logarithims) i.setVisible(true);}
             }mainFrame.revalidate(); // Resets mainframe
         });
         // Add to Middle Panel
@@ -166,6 +160,13 @@ public class swingCalc{
             inputNumber.setText("");
             lastSymbol = false;
         }}catch (NumberFormatException e) {} 
+    }private void themedCalculator(){
+        // Inputter
+        equation = "";
+        headerPanel.add(new JLabel("Input a number for: the starting money"));
+        middlePanel.add(inputNumber = new JTextField(3));
+        inputNumber.addActionListener((ActionEvent e) -> {});
+        bottomPanel.add(equationLabel = new JLabel("a(b)^(k(x - h)) + c"));
     }private double calculate(){ // Get Equation into sum
         ArrayList<String> answer = new ArrayList<>(Arrays.asList(equation.split("\\s")));
         String[] symbolOperators = {"sin", "cos", "tan", "sinh", "cosh", "tanh" ,"log" ,"ln"};
@@ -175,8 +176,8 @@ public class swingCalc{
                 leave = false;
                 // Multiple For loops to check each option
                 for(int i=0; i<answer.size(); i++) for(String option : options) if(answer.get(i).equals(option)){
-                    double x=Double.parseDouble(answer.get(i + 1)), y=0, sum=0;
-                    if(!Arrays.equals(options, symbolOperators)) y=Double.parseDouble(answer.get(i - 1));
+                    double x=Double.parseDouble(answer.get(i + 1)), y = 0, sum = 0;
+                    if(!Arrays.equals(options, symbolOperators)) y = Double.parseDouble(answer.get(i - 1));
                     switch(answer.get(i)){
                         // Normal Operations
                         case "+" -> sum = y + x;
@@ -186,12 +187,12 @@ public class swingCalc{
                         case "^" -> sum = Math.pow(y, x);
                         case "√" -> sum = Math.pow(x, 1.0/y);
                         // Trig and Log
-                        case "sin" -> sum = Math.sin(x);
-                        case "cos" -> sum = Math.cos(x);
-                        case "tan" -> sum = Math.tan(x);
-                        case "sinh" -> sum = Math.sinh(x);
-                        case "cosh" -> sum = Math.cosh(x);
-                        case "tanh" -> sum = Math.tanh(x);
+                        case "sin" -> sum = Math.sin(Math.toRadians(x));
+                        case "cos" -> sum = Math.cos(Math.toRadians(x));
+                        case "tan" -> sum = Math.tan(Math.toRadians(x));
+                        case "sinh" -> sum = Math.sinh(Math.toRadians(x));
+                        case "cosh" -> sum = Math.cosh(Math.toRadians(x));
+                        case "tanh" -> sum = Math.tanh(Math.toRadians(x));
                         case "log" -> sum = Math.log10(x);
                         case "ln" -> sum = Math.log(x);
                     }answer.set(i, "" + sum);
