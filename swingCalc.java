@@ -10,10 +10,11 @@ public class swingCalc{
     private final JPanel headerPanel;
     private final JPanel middlePanel;
     private final JPanel bottomPanel;
-    public static void main(String[] args){// Call Window
+    public static void main(String[] args){ // Call Window
         swingCalc logs = new swingCalc();
         logs.loginWindow();
-    }public swingCalc(){// Window Constructor
+    }
+    public swingCalc(){ // Window Constructor
         // Set Main Frame
         mainFrame = new JFrame("Azeez's SWING Tester");
         mainFrame.setSize(600,200);
@@ -47,9 +48,12 @@ public class swingCalc{
             for(String i:users){
                 if(username.getText().equals(i)){
                     loggedIn.setText("Logged in.");
-                    JOptionPane.showMessageDialog(mainFrame,"Press OK to open the calculator.");
+                    String[] options = {"Normal", "Themed", "Close"};
+                    int choice = JOptionPane.showOptionDialog(mainFrame, "Choose an Option", "Calculator Select", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
                     swingCalc calc = new swingCalc();
-                    calc.normalCalculator();
+                    if(choice == JOptionPane.YES_OPTION) calc.normalCalculator();
+                    else if(choice == JOptionPane.NO_OPTION) calc.themedCalculator();
+                    else System.exit(0);
                     fails = 0;
                     break;
                 }
@@ -71,7 +75,7 @@ public class swingCalc{
                 buffWrite.write(username.getText());
                 users.add(username.getText());
                 buffWrite.close();
-                loggedIn.setText(username.getText() + " was added");
+                loggedIn.setText(username.getText() + " was added.");
             }catch (FileNotFoundException a) {System.out.println("File not found");} 
             catch (IOException ex) {Logger.getLogger(swingCalc.class.getName()).log(Level.SEVERE, null, ex);}
         });
@@ -83,15 +87,16 @@ public class swingCalc{
         bottomPanel.add(login);
         bottomPanel.add(loggedIn);
         mainFrame.setVisible(true);
-    }// Calculator Variables
+    }
+    // Calculator Variables
     private String equation;
     private boolean lastSymbol;
-    private JLabel equalsLabel;
-    private JLabel equationLabel;
+    private JLabel equalsLabel, equationLabel;
     private JTextField inputNumber;
-    private void normalCalculator(){ // Calculator Constructor
+    private void normalCalculator(){ // Normal Calculator
         equation = "";
         lastSymbol = true;
+        mainFrame.setTitle("Azeez's Calculator");
         headerPanel.add(inputNumber = new JTextField(3));
         // Simple Operations : +, -, *, /, ^, √
         JButton plus = new JButton("+");
@@ -144,7 +149,8 @@ public class swingCalc{
         bottomPanel.add(equalsButton);
         bottomPanel.add(equalsLabel = new JLabel("Answer"));
         mainFrame.setVisible(true);
-    }private void mainOperation(String operation){
+    }
+    private void mainOperation(String operation){
         try { // Input Operation into equation
             if(lastSymbol) equation += Double.valueOf(inputNumber.getText()) + " ";
             else lastSymbol = true;
@@ -154,20 +160,15 @@ public class swingCalc{
                 equation = "";
             }inputNumber.setText("");
         }catch (NumberFormatException e) {}
-    }private void symbolOperation(String operation){ // Input Trig or other
+    }
+    private void symbolOperation(String operation){ // Input Trig or other
         try{if(lastSymbol){
             equationLabel.setText(equation += operation + " " + Double.valueOf(inputNumber.getText()) + " ");
             inputNumber.setText("");
             lastSymbol = false;
         }}catch (NumberFormatException e) {} 
-    }private void themedCalculator(){
-        // Inputter
-        equation = "";
-        headerPanel.add(new JLabel("Input a number for: the starting money"));
-        middlePanel.add(inputNumber = new JTextField(3));
-        inputNumber.addActionListener((ActionEvent e) -> {});
-        bottomPanel.add(equationLabel = new JLabel("a(b)^(k(x - h)) + c"));
-    }private double calculate(){ // Get Equation into sum
+    }
+    private double calculate(){ // Get Equation into Answer
         ArrayList<String> answer = new ArrayList<>(Arrays.asList(equation.split("\\s")));
         String[] symbolOperators = {"sin", "cos", "tan", "sinh", "cosh", "tanh" ,"log" ,"ln"};
         for(String[] options : new String[][]{symbolOperators, {"√"}, {"^"}, {"*", "/"}, {"+", "-"}}) {
@@ -199,8 +200,34 @@ public class swingCalc{
                     answer.remove(i + 1);
                     if(!Arrays.equals(options, symbolOperators)) answer.remove(i - 1);
                     break;
-                }for(String i : options) if(answer.contains(i)) leave=true;
+                }for(String i : options) if(answer.contains(i)) leave = true;
             }
         }return Double.parseDouble(answer.get(0)); 
+    }
+    private void themedCalculator(){ // Themed Calculator
+        // Inputter
+        equation = "";
+        mainFrame.setTitle("Azeez's THEMED Calculator");
+        double[] variables = {Integer.MAX_VALUE,Integer.MAX_VALUE,Integer.MAX_VALUE,Integer.MAX_VALUE,Integer.MAX_VALUE};
+        headerPanel.add(new JLabel("Input a number for: the starting money"));
+        middlePanel.add(inputNumber = new JTextField(3));
+        JButton enter = new JButton("ENTER");
+        enter.addActionListener((ActionEvent e) -> {
+            boolean check = false;
+            for(int i = 0; i < variables.length; i++){
+                if(variables[i] == Integer.MAX_VALUE){
+                    try{
+                        variables[i] = Double.parseDouble(inputNumber.getText());
+                        inputNumber.setText("");
+                        check = true;
+                    }catch(Exception a){}
+                    break;
+                }
+            }
+            if(!check) equationLabel.setText(String.format("%.2f(%.2f)^(%.2f(x - %.2f)) - %.2f", variables[0], variables[1], variables[2], variables[3], variables[4]));
+        });
+        middlePanel.add(enter);
+        bottomPanel.add(equationLabel = new JLabel("a(b)^(k(x - h)) + c"));
+        mainFrame.setVisible(true);
     }
 }
