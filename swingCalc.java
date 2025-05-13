@@ -1,3 +1,6 @@
+/*Calculator using Java Swing
+ * Azeez Bazara
+*/
 import java.io.*;
 import java.awt.*;
 import java.util.*;
@@ -57,7 +60,8 @@ public class swingCalc{
                         case 0 /*Normal*/ -> calc.normalCalculator();
                         case 1 /*Themed*/ -> calc.themedCalculator();
                         default -> System.exit(0);
-                    }fails = 0;
+                    }
+                    fails = 0;
                     break;
                 }
             }if(fails != 0){
@@ -114,10 +118,10 @@ public class swingCalc{
         log = new JButton("log(x)"),
         ln = new JButton("ln(x)");
         // Add action listeners to operators
-        JButton[] operates= {plus, minus, multiply, divide, power, root};
-        JButton[] trig = {sin, cos, tan, sinh, cosh, tanh};
-        JButton[] logarithims = {log, ln};
-        JButton[] allOperates = {plus, minus, multiply, divide, power, root, sin, cos, tan, sinh, cosh, tanh, log, ln};
+        JButton[] operates= {plus, minus, multiply, divide, power, root},
+        trig = {sin, cos, tan, sinh, cosh, tanh},
+        logarithims = {log, ln},
+        allOperates = {plus, minus, multiply, divide, power, root, sin, cos, tan, sinh, cosh, tanh, log, ln};
         for(JButton i : operates) i.addActionListener((ActionEvent e) -> {mainOperation(i.getText());});
         for(JButton i : trig) i.addActionListener((ActionEvent e) -> {symbolOperation(i.getText().substring(0,i.getText().length()-3));});
         for(JButton i : logarithims) i.addActionListener((ActionEvent e) -> {symbolOperation(i.getText().substring(0,i.getText().length()-3));});
@@ -130,7 +134,8 @@ public class swingCalc{
                 case 0 /*Operations*/ -> {for(JButton i : operates) i.setVisible(true);}
                 case 1 /*Trigonometry*/ -> {for(JButton i : trig) i.setVisible(true);}
                 case 2 /*Other*/ -> {for(JButton i : logarithims) i.setVisible(true);}
-            }mainFrame.revalidate(); // Resets mainFrame
+            }
+            mainFrame.revalidate(); // Resets mainFrame
         });
         // Add to Middle Panel
         middlePanel.add(operationSelector);
@@ -146,7 +151,8 @@ public class swingCalc{
         bottomPanel.add(equalsButton);
         bottomPanel.add(equalsLabel = new JLabel("Answer"));
         mainFrame.setVisible(true);
-    }private void mainOperation(String operation){
+    }
+    private void mainOperation(String operation){
         try { // Input Operation into equation
             if(lastSymbol) equation += Double.valueOf(inputNumber.getText()) + " ";
             else lastSymbol = true;
@@ -154,19 +160,22 @@ public class swingCalc{
             if(operation.equals("")) { // When equals is pressed, gives final answer
                 equalsLabel.setText("" + calculate());
                 equation = "";
-            }inputNumber.setText("");
+            }
+            inputNumber.setText("");
         }catch (NumberFormatException e) {}
-    }private void symbolOperation(String operation){ // Input Trig or other
+    }
+    private void symbolOperation(String operation){ // Input Trig or other
         try{if(lastSymbol){
             equationLabel.setText(equation += operation + " " + Double.valueOf(inputNumber.getText()) + " ");
             inputNumber.setText("");
             lastSymbol = false;
         }}catch (NumberFormatException e) {} 
-    }private double calculate(){ // Get Equation into Answer
+    }
+    private double calculate(){ // Get Equation into Answer
         ArrayList<String> answer = new ArrayList<>(Arrays.asList(equation.split("\\s")));
         String[] symbolOperators = {"sin", "cos", "tan", "sinh", "cosh", "tanh" ,"log" ,"ln"};
         double tenToTen = Math.pow(10,10); // Used to round trig due to inconcistency
-        for(String[] options : new String[][]{symbolOperators, {"√"}, {"^"}, {"*", "/"}, {"+", "-"}}) {
+        for(String[] options : new String[][]{symbolOperators, {"√"}, {"^"}, {"*", "/"}, {"+", "-"}}){
             boolean leave = true;
             while(leave){
                 leave = false;
@@ -191,13 +200,16 @@ public class swingCalc{
                         case "tanh" -> sum = Math.tanh(x);
                         case "log" -> sum = Math.log10(x);
                         case "ln" -> sum = Math.log(x);
-                    }answer.set(i, "" + sum);
+                    }
+                    answer.set(i, "" + sum);
                     answer.remove(i + 1);
                     if(!Arrays.equals(options, symbolOperators)) answer.remove(i - 1);
                     break;
-                }for(String i : options) if(answer.contains(i)) leave = true;
+                }
+                for(String i : options) if(answer.contains(i)) leave = true;
             }
-        }return Double.parseDouble(answer.get(0)); 
+        }
+        return Double.parseDouble(answer.get(0)); 
     }
     // Themed Calculator
     private void themedCalculator(){
@@ -215,7 +227,8 @@ public class swingCalc{
                 enter.setText("ENTER");
                 textCount = 1;
                 return;
-            }for(int i = 0; i < v.length; i++){ // Adds each value to array
+            }
+            for(int i = 0; i < v.length; i++){ // Adds each value to array
                 if(v[i] == Integer.MAX_VALUE){
                     try{
                         v[i] = Double.parseDouble(inputNumber.getText());
@@ -224,9 +237,10 @@ public class swingCalc{
                     }catch(NumberFormatException a){}
                     break;
                 }
-            }if(v[v.length-1] != Integer.MAX_VALUE){ // When all values are inputted
+            }
+            if(v[v.length-1] != Integer.MAX_VALUE){ // When all values are inputted
                 enter.setText("RESET");
-                equationLabel.setText(String.format("%.2f(%.2f)^(%.2f(x - %.2f)) - %.2f", v[0], v[1], v[2], v[3], v[4])+ " = " + (v[0] * Math.pow(v[1], v[2] * (0.0 - v[3])) - v[4]));
+                equationLabel.setText(String.format("%.2f(%.2f)^(%.2f(x - %.2f)) - %.2f", v[0], v[1], v[2], v[3], v[4])+ " = " + (v[0] * Math.pow(v[1], v[2] * (0.0 - v[3])) + v[4]));
             }
         });
         // Add to Panel
