@@ -17,11 +17,13 @@ public class swingCalc{
     private boolean lastSymbol;
     private String equation;
     private double[] v;
-    public static void main(String[] args){ // Call Window
+    // Call Window
+    public static void main(String[] args){
         swingCalc logs = new swingCalc();
         logs.loginWindow();
     }
-    public swingCalc(){ // Window Constructor
+    // Window Constructor
+    public swingCalc(){
         // Set Main Frame
         mainFrame = new JFrame("Azeez's SWING Tester");
         mainFrame.setSize(600,200);
