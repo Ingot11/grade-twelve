@@ -5,11 +5,15 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.util.logging.*;
 public class swingCalc{
-   // Window Variables
+   // Variables
     private final JFrame mainFrame;
-    private final JPanel headerPanel;
-    private final JPanel middlePanel;
-    private final JPanel bottomPanel;
+    private final JPanel headerPanel, middlePanel, bottomPanel;
+    private JLabel equalsLabel, equationLabel;
+    private JTextField inputNumber;
+    private int textCount, fails;
+    private boolean lastSymbol;
+    private String equation;
+    private double[] v;
     public static void main(String[] args){ // Call Window
         swingCalc logs = new swingCalc();
         logs.loginWindow();
@@ -26,22 +30,21 @@ public class swingCalc{
         mainFrame.add(bottomPanel = new JPanel(new FlowLayout()));
     }
     // Login Details
-    private int fails = 1;
     private void loginWindow(){
         mainFrame.setSize(400,250);
         ArrayList<String> users = new ArrayList<>();
-        String line;
         try(BufferedReader buffRead = new BufferedReader(new FileReader("users.txt"))){ // Add acccounts from users.txt
-            while ((line=buffRead.readLine()) != null) users.add(line);
+            String line;
+            while ((line = buffRead.readLine()) != null) users.add(line);
             buffRead.close();
         }catch (FileNotFoundException e) {System.out.println("File not found");}
         catch (IOException ex) {Logger.getLogger(swingCalc.class.getName()).log(Level.SEVERE, null, ex);}
         // Username and Password
         JTextField username = new JTextField(4);
         JPasswordField password = new JPasswordField(4);
+        fails = 1;
         // Login and New Account Button
-        JButton login = new JButton("Login.");
-        JButton newAccount = new JButton("Create Account");
+        JButton login = new JButton("Login."), newAccount = new JButton("Create Account");
         JLabel loggedIn = new JLabel("Not logged in.");
         login.addActionListener((ActionEvent e) -> {
             if(fails == 0) return;
@@ -49,12 +52,12 @@ public class swingCalc{
                 if(username.getText().equals(i)){
                     loggedIn.setText("Logged in.");
                     String[] options = {"Normal", "Themed", "Close"};
-                    int choice = JOptionPane.showOptionDialog(mainFrame, "Choose an Option", "Calculator Select", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
                     swingCalc calc = new swingCalc();
-                    if(choice == JOptionPane.YES_OPTION) calc.normalCalculator();
-                    else if(choice == JOptionPane.NO_OPTION) calc.themedCalculator();
-                    else System.exit(0);
-                    fails = 0;
+                    switch (JOptionPane.showOptionDialog(mainFrame, "Choose the Type of Calculator", "Calculator Select", 1, 1, null, options, options[2])) {
+                        case 0 /*Normal*/ -> calc.normalCalculator();
+                        case 1 /*Themed*/ -> calc.themedCalculator();
+                        default -> System.exit(0);
+                    }fails = 0;
                     break;
                 }
             }if(fails != 0){
@@ -88,56 +91,50 @@ public class swingCalc{
         bottomPanel.add(loggedIn);
         mainFrame.setVisible(true);
     }
-    // Calculator Variables
-    private String equation;
-    private boolean lastSymbol;
-    private JLabel equalsLabel, equationLabel;
-    private JTextField inputNumber;
-    private void normalCalculator(){ // Normal Calculator
+    // Normal Calculator
+    private void normalCalculator(){
         equation = "";
         lastSymbol = true;
         mainFrame.setTitle("Azeez's Calculator");
         headerPanel.add(inputNumber = new JTextField(3));
         // Simple Operations : +, -, *, /, ^, √
-        JButton plus = new JButton("+");
-        JButton minus = new JButton("-");
-        JButton multiply = new JButton("*");
-        JButton divide = new JButton("/");
-        JButton power = new JButton("^");
-        JButton root = new JButton("√");
-        // Trigonometry : sin(θ), cos(θ), tan(θ), sinh(θ), cosh(θ), tanh(θ) And Other Operations : log(x), ln(x)
-        JButton sin = new JButton("sin(θ)");
-        JButton cos = new JButton("cos(θ)");
-        JButton tan = new JButton("tan(θ)");
-        JButton sinh = new JButton("sinh(θ)");
-        JButton cosh = new JButton("cosh(θ)");
-        JButton tanh = new JButton("tanh(θ)");
-        JButton log = new JButton("log(x)");
-        JButton ln = new JButton("ln(x)");
+        JButton plus = new JButton("+"),
+        minus = new JButton("-"),
+        multiply = new JButton("*"),
+        divide = new JButton("/"),
+        power = new JButton("^"),
+        root = new JButton("√"),
+        // Trigonometry : sin(θ), cos(θ), tan(θ), sinh(θ), cosh(θ), tanh(θ) and other operations : log(x), ln(x)
+        sin = new JButton("sin(θ)"),
+        cos = new JButton("cos(θ)"),
+        tan = new JButton("tan(θ)"),
+        sinh = new JButton("sinh(θ)"),
+        cosh = new JButton("cosh(θ)"),
+        tanh = new JButton("tanh(θ)"),
+        log = new JButton("log(x)"),
+        ln = new JButton("ln(x)");
         // Add action listeners to operators
         JButton[] operates= {plus, minus, multiply, divide, power, root};
         JButton[] trig = {sin, cos, tan, sinh, cosh, tanh};
         JButton[] logarithims = {log, ln};
+        JButton[] allOperates = {plus, minus, multiply, divide, power, root, sin, cos, tan, sinh, cosh, tanh, log, ln};
         for(JButton i : operates) i.addActionListener((ActionEvent e) -> {mainOperation(i.getText());});
         for(JButton i : trig) i.addActionListener((ActionEvent e) -> {symbolOperation(i.getText().substring(0,i.getText().length()-3));});
         for(JButton i : logarithims) i.addActionListener((ActionEvent e) -> {symbolOperation(i.getText().substring(0,i.getText().length()-3));});
-        // Choose type of Operation
+        // Choose type of operation
         JComboBox operationSelector = new JComboBox(new String[]{"Operations","Trigonometry","Other"});
         operationSelector.setSelectedIndex(0);
         operationSelector.addActionListener((ActionEvent e) -> { // Hides all at start
-            for(Component component : middlePanel.getComponents()) component.setVisible(false);
-            operationSelector.setVisible(true);
+            for(JButton i : allOperates) i.setVisible(false);
             switch(operationSelector.getSelectedIndex()){ // Choose which is visible
                 case 0 /*Operations*/ -> {for(JButton i : operates) i.setVisible(true);}
                 case 1 /*Trigonometry*/ -> {for(JButton i : trig) i.setVisible(true);}
                 case 2 /*Other*/ -> {for(JButton i : logarithims) i.setVisible(true);}
-            }mainFrame.revalidate(); // Resets mainframe
+            }mainFrame.revalidate(); // Resets mainFrame
         });
         // Add to Middle Panel
         middlePanel.add(operationSelector);
-        for(JButton i : operates) middlePanel.add(i);
-        for(JButton i : trig) middlePanel.add(i);
-        for(JButton i : logarithims) middlePanel.add(i);
+        for(JButton i : allOperates) middlePanel.add(i);
         // Set all but default operations invisible
         for(Component component : middlePanel.getComponents()) component.setVisible(false);
         for(JButton i : operates) i.setVisible(true);
@@ -149,8 +146,7 @@ public class swingCalc{
         bottomPanel.add(equalsButton);
         bottomPanel.add(equalsLabel = new JLabel("Answer"));
         mainFrame.setVisible(true);
-    }
-    private void mainOperation(String operation){
+    }private void mainOperation(String operation){
         try { // Input Operation into equation
             if(lastSymbol) equation += Double.valueOf(inputNumber.getText()) + " ";
             else lastSymbol = true;
@@ -160,17 +156,16 @@ public class swingCalc{
                 equation = "";
             }inputNumber.setText("");
         }catch (NumberFormatException e) {}
-    }
-    private void symbolOperation(String operation){ // Input Trig or other
+    }private void symbolOperation(String operation){ // Input Trig or other
         try{if(lastSymbol){
             equationLabel.setText(equation += operation + " " + Double.valueOf(inputNumber.getText()) + " ");
             inputNumber.setText("");
             lastSymbol = false;
         }}catch (NumberFormatException e) {} 
-    }
-    private double calculate(){ // Get Equation into Answer
+    }private double calculate(){ // Get Equation into Answer
         ArrayList<String> answer = new ArrayList<>(Arrays.asList(equation.split("\\s")));
         String[] symbolOperators = {"sin", "cos", "tan", "sinh", "cosh", "tanh" ,"log" ,"ln"};
+        double tenToTen = Math.pow(10,10); // Used to round trig due to inconcistency
         for(String[] options : new String[][]{symbolOperators, {"√"}, {"^"}, {"*", "/"}, {"+", "-"}}) {
             boolean leave = true;
             while(leave){
@@ -188,12 +183,12 @@ public class swingCalc{
                         case "^" -> sum = Math.pow(y, x);
                         case "√" -> sum = Math.pow(x, 1.0/y);
                         // Trig and Log
-                        case "sin" -> sum = Math.sin(Math.toRadians(x));
-                        case "cos" -> sum = Math.cos(Math.toRadians(x));
-                        case "tan" -> sum = Math.tan(Math.toRadians(x));
-                        case "sinh" -> sum = Math.sinh(Math.toRadians(x));
-                        case "cosh" -> sum = Math.cosh(Math.toRadians(x));
-                        case "tanh" -> sum = Math.tanh(Math.toRadians(x));
+                        case "sin" -> sum = Math.round(Math.sin(Math.toRadians(x))*tenToTen)/tenToTen;
+                        case "cos" -> sum = Math.round(Math.cos(Math.toRadians(x))*tenToTen)/tenToTen;
+                        case "tan" -> sum = Math.round(Math.tan(Math.toRadians(x))*tenToTen)/tenToTen;
+                        case "sinh" -> sum = Math.sinh(x);
+                        case "cosh" -> sum = Math.cosh(x);
+                        case "tanh" -> sum = Math.tanh(x);
                         case "log" -> sum = Math.log10(x);
                         case "ln" -> sum = Math.log(x);
                     }answer.set(i, "" + sum);
@@ -204,28 +199,39 @@ public class swingCalc{
             }
         }return Double.parseDouble(answer.get(0)); 
     }
-    private void themedCalculator(){ // Themed Calculator
-        // Inputter
-        equation = "";
+    // Themed Calculator
+    private void themedCalculator(){
+        String[] textTiles = {"Starting Balance", "Interest Rate (In Decimals)", "k Property", "When did you start?", "c Property", "Complete"};
+        v = new double[]{Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE};
         mainFrame.setTitle("Azeez's THEMED Calculator");
-        double[] variables = {Integer.MAX_VALUE,Integer.MAX_VALUE,Integer.MAX_VALUE,Integer.MAX_VALUE,Integer.MAX_VALUE};
-        headerPanel.add(new JLabel("Input a number for: the starting money"));
-        middlePanel.add(inputNumber = new JTextField(3));
+        textCount = 1;
+        // Enter Button
         JButton enter = new JButton("ENTER");
         enter.addActionListener((ActionEvent e) -> {
-            boolean check = false;
-            for(int i = 0; i < variables.length; i++){
-                if(variables[i] == Integer.MAX_VALUE){
+            if(textCount >= 6){ // Reset Equation
+                equalsLabel.setText("Input a number for: " + textTiles[0]);
+                v = new double[]{Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE};
+                equationLabel.setText("a(b)^(k(x - h)) + c");
+                enter.setText("ENTER");
+                textCount = 1;
+                return;
+            }for(int i = 0; i < v.length; i++){ // Adds each value to array
+                if(v[i] == Integer.MAX_VALUE){
                     try{
-                        variables[i] = Double.parseDouble(inputNumber.getText());
+                        v[i] = Double.parseDouble(inputNumber.getText());
                         inputNumber.setText("");
-                        check = true;
-                    }catch(Exception a){}
+                        equalsLabel.setText("Input a number for: " + textTiles[textCount++]);
+                    }catch(NumberFormatException a){}
                     break;
                 }
+            }if(v[v.length-1] != Integer.MAX_VALUE){ // When all values are inputted
+                enter.setText("RESET");
+                equationLabel.setText(String.format("%.2f(%.2f)^(%.2f(x - %.2f)) - %.2f", v[0], v[1], v[2], v[3], v[4])+ " = " + (v[0] * Math.pow(v[1], v[2] * (0.0 - v[3])) - v[4]));
             }
-            if(!check) equationLabel.setText(String.format("%.2f(%.2f)^(%.2f(x - %.2f)) - %.2f", variables[0], variables[1], variables[2], variables[3], variables[4]));
         });
+        // Add to Panel
+        headerPanel.add(equalsLabel = new JLabel("Input a number for: Starting Balance"));
+        middlePanel.add(inputNumber = new JTextField(3));
         middlePanel.add(enter);
         bottomPanel.add(equationLabel = new JLabel("a(b)^(k(x - h)) + c"));
         mainFrame.setVisible(true);
