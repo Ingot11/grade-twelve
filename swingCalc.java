@@ -11,12 +11,15 @@ public class swingCalc{
    // Variables
     private final JFrame mainFrame;
     private final JPanel headerPanel, middlePanel, bottomPanel;
+    private final double tenToTen = Math.pow(10,10); // Used to round trig due to inconcistency
     private JLabel equalsLabel, equationLabel;
     private JTextField inputNumber;
     private int textCount, fails;
-    private boolean lastSymbol;
+    private boolean checkOperation;
     private String equation;
+    private double temp;
     private double[] v;
+    JButton enter;
     // Call Window
     public static void main(String[] args){
         swingCalc logs = new swingCalc();
@@ -56,12 +59,13 @@ public class swingCalc{
             for(String i:users){
                 if(username.getText().equals(i)){
                     loggedIn.setText("Logged in.");
-                    String[] options = {"Normal", "Themed", "Close"};
+                    String[] options = {"Normal", "Themed", "Conversion","More?"};
                     swingCalc calc = new swingCalc();
-                    switch (JOptionPane.showOptionDialog(mainFrame, "Choose the Type of Calculator", "Calculator Select", 1, 1, null, options, options[2])) {
+                    switch (JOptionPane.showOptionDialog(mainFrame, "Choose the Type of Calculator", "Calculator Select", 1, 1, null, options, options[0])) {
                         case 0 /*Normal*/ -> calc.normalCalculator();
                         case 1 /*Themed*/ -> calc.themedCalculator();
-                        default -> System.exit(0);
+                        case 2 /*Conversion*/ -> calc.conversionCalculator();
+                        default /*Death*/ -> System.exit(0);
                     }
                     fails = 0;
                     break;
@@ -100,7 +104,7 @@ public class swingCalc{
     // Normal Calculator
     private void normalCalculator(){
         equation = "";
-        lastSymbol = true;
+        checkOperation = true;
         mainFrame.setTitle("Azeez's Calculator");
         headerPanel.add(inputNumber = new JTextField(3));
         // Simple Operations : +, -, *, /, ^, √
@@ -146,18 +150,17 @@ public class swingCalc{
         for(Component component : middlePanel.getComponents()) component.setVisible(false);
         for(JButton i : operates) i.setVisible(true);
         operationSelector.setVisible(true);
-        // Equals Button and Text
-        JButton equalsButton = new JButton("=");
-        equalsButton.addActionListener((ActionEvent e) -> {mainOperation("");});
+        // Add Bottom Panel
         bottomPanel.add(equationLabel = new JLabel("Input a Number"));
-        bottomPanel.add(equalsButton);
+        bottomPanel.add(enter = new JButton("="));
         bottomPanel.add(equalsLabel = new JLabel("Answer"));
+        enter.addActionListener((ActionEvent e) -> {mainOperation("");});
         mainFrame.setVisible(true);
     }
     private void mainOperation(String operation){
         try { // Input Operation into equation
-            if(lastSymbol) equation += Double.valueOf(inputNumber.getText()) + " ";
-            else lastSymbol = true;
+            if(checkOperation) equation += Double.valueOf(inputNumber.getText()) + " ";
+            else checkOperation = true;
             equationLabel.setText(equation += operation + " ");
             if(operation.equals("")) { // When equals is pressed, gives final answer
                 equalsLabel.setText("" + calculate());
@@ -166,17 +169,17 @@ public class swingCalc{
             inputNumber.setText("");
         }catch (NumberFormatException e) {}
     }
-    private void symbolOperation(String operation){ // Input Trig or other
-        try{if(lastSymbol){
+    private void symbolOperation(String operation){ // Input Trig or other into equation
+        try{if(checkOperation){
             equationLabel.setText(equation += operation + " " + Double.valueOf(inputNumber.getText()) + " ");
             inputNumber.setText("");
-            lastSymbol = false;
+            checkOperation = false;
         }}catch (NumberFormatException e) {} 
     }
     private double calculate(){ // Get Equation into Answer
         ArrayList<String> answer = new ArrayList<>(Arrays.asList(equation.split("\\s")));
         String[] symbolOperators = {"sin", "cos", "tan", "sinh", "cosh", "tanh" ,"log" ,"ln"};
-        double tenToTen = Math.pow(10,10); // Used to round trig due to inconcistency
+        // Does Calculations based on BEDMAS
         for(String[] options : new String[][]{symbolOperators, {"√"}, {"^"}, {"*", "/"}, {"+", "-"}}){
             boolean leave = true;
             while(leave){
@@ -219,8 +222,13 @@ public class swingCalc{
         v = new double[]{Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE};
         mainFrame.setTitle("Azeez's THEMED Calculator");
         textCount = 1;
-        // Enter Button
-        JButton enter = new JButton("ENTER");
+        // Add to Panel
+        headerPanel.add(equalsLabel = new JLabel("Input a number for: Starting Balance"));
+        middlePanel.add(inputNumber = new JTextField(3));
+        middlePanel.add(enter = new JButton("ENTER"));
+        bottomPanel.add(equationLabel = new JLabel("a(b)^(k(x - h)) + c"));
+        mainFrame.setVisible(true);
+        // Action Listeners
         enter.addActionListener((ActionEvent e) -> {
             if(textCount >= 6){ // Reset Equation
                 equalsLabel.setText("Input a number for: " + textTiles[0]);
@@ -245,11 +253,51 @@ public class swingCalc{
                 equationLabel.setText(String.format("%.2f(%.2f)^(%.2f(x - %.2f)) - %.2f", v[0], v[1], v[2], v[3], v[4])+ " = " + (v[0] * Math.pow(v[1], v[2] * (0.0 - v[3])) + v[4]));
             }
         });
+    }
+    private void conversionCalculator(){
+        mainFrame.setTitle("Azeez's Conversion Calculator");
+        checkOperation = false;
+        textCount = 0;
+        // Convert Selector
+        JComboBox operationSelector = new JComboBox(new String[]{"kg → lbs", "m → ft", "km → miles", "°C → °F"});
+        operationSelector.setSelectedIndex(0);
+        operationSelector.addActionListener((ActionEvent e) -> {textCount = operationSelector.getSelectedIndex();});
+        // Reverser and Enter Buttons
+        JButton reverser = new JButton("Reverse Operation");
         // Add to Panel
-        headerPanel.add(equalsLabel = new JLabel("Input a number for: Starting Balance"));
+        headerPanel.add(equalsLabel = new JLabel("Convert from"));
+        headerPanel.add(operationSelector);
+        headerPanel.add(reverser);
         middlePanel.add(inputNumber = new JTextField(3));
-        middlePanel.add(enter);
-        bottomPanel.add(equationLabel = new JLabel("a(b)^(k(x - h)) + c"));
+        middlePanel.add(enter = new JButton("ENTER"));
+        bottomPanel.add(equationLabel = new JLabel("0.0"));
         mainFrame.setVisible(true);
+        // Action Listeners
+        enter.addActionListener((ActionEvent e) -> {
+            try{temp = Double.parseDouble(inputNumber.getText());}
+            catch(NumberFormatException a){temp = 0;}
+            if(!checkOperation) switch(textCount){
+                case 0 /*kg to lbs*/ -> temp *= 2.205;
+                case 1 /*meters to ft*/ -> temp *= 3.281;
+                case 2 /*km to miles*/ -> temp /= 1.609;
+                case 3 /*Celsius to Fahrenheit*/ -> temp = (temp * 9.0/5.0) + 32;
+                default -> temp = 0;
+            }
+            else switch(textCount){
+                case 0 /*lbs to kg*/ -> temp /= 2.205;
+                case 1 /*ft to meters*/ -> temp /= 3.281;
+                case 2 /*miles to km*/ -> temp *= 1.609;
+                case 3 /*Fahrenheit to Celsius*/ -> temp = (temp - 32) * 5.0/9.0;
+                default -> temp = 0;
+            }
+            equationLabel.setText("" + Math.round(temp*tenToTen)/tenToTen);
+            mainFrame.revalidate(); // Resets mainFrame
+        });
+        reverser.addActionListener((ActionEvent e) -> {
+            if(checkOperation = !checkOperation) operationSelector.setModel(new DefaultComboBoxModel(new String[]{"kg ← lbs", "m ← ft", "km ← miles", "°C ← °F"}));
+            else operationSelector.setModel(new DefaultComboBoxModel(new String[]{"kg → lbs", "m → ft", "km → miles", "°C → °F"}));
+            operationSelector.setSelectedIndex(textCount);
+            mainFrame.revalidate(); // Resets mainFrame
+        });
     }
 }
