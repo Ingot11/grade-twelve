@@ -13,13 +13,13 @@ public class swingCalc{
     private final JPanel headerPanel, middlePanel, bottomPanel;
     private final double tenToTen = Math.pow(10,10); // Used to round trig due to inconcistency
     private JLabel equalsLabel, equationLabel;
+    private JComboBox operationSelector;
     private JTextField inputNumber;
-    private int textCount, fails;
     private boolean checkOperation;
+    private int textCount, fails;
     private String equation;
+    private JButton enter;
     private double temp;
-    private double[] v;
-    JButton enter;
     // Call Window
     public static void main(String[] args){
         swingCalc logs = new swingCalc();
@@ -59,21 +59,20 @@ public class swingCalc{
             for(String i:users){
                 if(username.getText().equals(i)){
                     loggedIn.setText("Logged in.");
-                    String[] options = {"Normal", "Themed", "Conversion","More?"};
+                    String[] options = {"Normal", "Conversion", "None"};
                     swingCalc calc = new swingCalc();
                     switch (JOptionPane.showOptionDialog(mainFrame, "Choose the Type of Calculator", "Calculator Select", 1, 1, null, options, options[0])) {
                         case 0 /*Normal*/ -> calc.normalCalculator();
-                        case 1 /*Themed*/ -> calc.themedCalculator();
-                        case 2 /*Conversion*/ -> calc.conversionCalculator();
-                        default /*Death*/ -> System.exit(0);
+                        case 1 /*Conversion*/ -> calc.conversionCalculator();
+                        default /*End*/ -> System.exit(0);
                     }
                     fails = 0;
                     break;
                 }
             }if(fails != 0){
-                loggedIn.setText((3-fails)+" attempts left.");
+                loggedIn.setText((3 - fails) + " attempts left.");
                 if (fails++ >= 3){
-                    JOptionPane.showMessageDialog(mainFrame,"You ran out of login attempts.\nPress OK to leave the program.");
+                    JOptionPane.showMessageDialog(mainFrame, "You ran out of login attempts.\nPress OK to leave the program.");
                     System.exit(0);
                 }
             }
@@ -90,7 +89,7 @@ public class swingCalc{
                 buffWrite.close();
                 loggedIn.setText(username.getText() + " was added.");
             }catch (FileNotFoundException a) {System.out.println("File not found");} 
-            catch (IOException ex) {Logger.getLogger(swingCalc.class.getName()).log(Level.SEVERE, null, ex);}
+            catch (IOException t) {Logger.getLogger(swingCalc.class.getName()).log(Level.SEVERE, null, t);}
         });
         middlePanel.add(new JLabel("Username:"));
         middlePanel.add(username);
@@ -107,34 +106,37 @@ public class swingCalc{
         checkOperation = true;
         mainFrame.setTitle("Azeez's Calculator");
         headerPanel.add(inputNumber = new JTextField(3));
+        ArrayList<JButton> operates = new ArrayList<>(),
+        trig = new ArrayList<>(),
+        logarithims = new ArrayList<>(),
+        allOperates = new ArrayList<>();
         // Simple Operations : +, -, *, /, ^, √
-        JButton plus = new JButton("+"),
-        minus = new JButton("-"),
-        multiply = new JButton("*"),
-        divide = new JButton("/"),
-        power = new JButton("^"),
-        root = new JButton("√"),
-        // Trigonometry : sin(θ), cos(θ), tan(θ), sinh(θ), cosh(θ), tanh(θ) and other operations : log(x), ln(x)
-        sin = new JButton("sin(θ)"),
-        cos = new JButton("cos(θ)"),
-        tan = new JButton("tan(θ)"),
-        sinh = new JButton("sinh(θ)"),
-        cosh = new JButton("cosh(θ)"),
-        tanh = new JButton("tanh(θ)"),
-        log = new JButton("log(x)"),
-        ln = new JButton("ln(x)");
-        // Add action listeners to operators
-        JButton[] operates= {plus, minus, multiply, divide, power, root},
-        trig = {sin, cos, tan, sinh, cosh, tanh},
-        logarithims = {log, ln},
-        allOperates = {plus, minus, multiply, divide, power, root, sin, cos, tan, sinh, cosh, tanh, log, ln};
+        for(String i : new String[]{"+", "-", "*", "/", "^", "√"}) operates.add(new JButton(i));
         for(JButton i : operates) i.addActionListener((ActionEvent e) -> {mainOperation(i.getText());});
-        for(JButton i : trig) i.addActionListener((ActionEvent e) -> {symbolOperation(i.getText().substring(0,i.getText().length()-3));});
-        for(JButton i : logarithims) i.addActionListener((ActionEvent e) -> {symbolOperation(i.getText().substring(0,i.getText().length()-3));});
-        // Choose type of operation
-        JComboBox operationSelector = new JComboBox(new String[]{"Operations","Trigonometry","Other"});
-        operationSelector.setSelectedIndex(0);
-        operationSelector.addActionListener((ActionEvent e) -> { // Hides all at start
+        // Trigonometry : sin(θ), cos(θ), tan(θ), sinh(θ), cosh(θ), tanh(θ)
+        for(String i : new String[]{"sin(θ)", "cos(θ)", "tan(θ)", "sinh(θ)", "cosh(θ)", "tanh(θ)"}) trig.add(new JButton(i));
+        for(JButton i : trig) i.addActionListener((ActionEvent e) -> {symbolOperation(i.getText());});
+        // Other operations : log(x), ln(x)
+        for(String i : new String[]{"log(x)","ln(x)"}) logarithims.add(new JButton(i));
+        for(JButton i : logarithims) i.addActionListener((ActionEvent e) -> {symbolOperation(i.getText());});
+        // Add to All List
+        allOperates.addAll(operates);
+        allOperates.addAll(trig);
+        allOperates.addAll(logarithims);
+        // Add to middlePanel and set all but default operations invisible
+        middlePanel.add(operationSelector = new JComboBox(new String[]{"Operations","Trigonometry","Other"}));
+        for(JButton i : allOperates){
+            middlePanel.add(i);
+            if(operates.contains(i)) continue;
+            i.setVisible(false);
+        }
+        // Add bottomPanel
+        bottomPanel.add(equationLabel = new JLabel("Input a Number"));
+        bottomPanel.add(enter = new JButton("="));
+        bottomPanel.add(equalsLabel = new JLabel("Answer"));
+        enter.addActionListener((ActionEvent e) -> {mainOperation("");});
+        operationSelector.addActionListener((ActionEvent e) -> {
+            // Set all invisible
             for(JButton i : allOperates) i.setVisible(false);
             switch(operationSelector.getSelectedIndex()){ // Choose which is visible
                 case 0 /*Operations*/ -> {for(JButton i : operates) i.setVisible(true);}
@@ -143,26 +145,15 @@ public class swingCalc{
             }
             mainFrame.revalidate(); // Resets mainFrame
         });
-        // Add to Middle Panel
-        middlePanel.add(operationSelector);
-        for(JButton i : allOperates) middlePanel.add(i);
-        // Set all but default operations invisible
-        for(Component component : middlePanel.getComponents()) component.setVisible(false);
-        for(JButton i : operates) i.setVisible(true);
-        operationSelector.setVisible(true);
-        // Add Bottom Panel
-        bottomPanel.add(equationLabel = new JLabel("Input a Number"));
-        bottomPanel.add(enter = new JButton("="));
-        bottomPanel.add(equalsLabel = new JLabel("Answer"));
-        enter.addActionListener((ActionEvent e) -> {mainOperation("");});
         mainFrame.setVisible(true);
     }
-    private void mainOperation(String operation){
-        try { // Input Operation into equation
+    private void mainOperation(String operation){ // Input Operation into equation
+        try {
             if(checkOperation) equation += Double.valueOf(inputNumber.getText()) + " ";
             else checkOperation = true;
             equationLabel.setText(equation += operation + " ");
-            if(operation.equals("")) { // When equals is pressed, gives final answer
+            // When equals is pressed, gives final answer
+            if(operation.equals("")) {
                 equalsLabel.setText("" + calculate());
                 equation = "";
             }
@@ -171,7 +162,7 @@ public class swingCalc{
     }
     private void symbolOperation(String operation){ // Input Trig or other into equation
         try{if(checkOperation){
-            equationLabel.setText(equation += operation + " " + Double.valueOf(inputNumber.getText()) + " ");
+            equationLabel.setText(equation += operation.substring(0,operation.length()-3) + " " + Double.valueOf(inputNumber.getText()) + " ");
             inputNumber.setText("");
             checkOperation = false;
         }}catch (NumberFormatException e) {} 
@@ -186,27 +177,27 @@ public class swingCalc{
                 leave = false;
                 // Multiple For loops to check each option
                 for(int i=0; i<answer.size(); i++) for(String option : options) if(answer.get(i).equals(option)){
-                    double x=Double.parseDouble(answer.get(i + 1)), y = 0, sum = 0;
+                    double x=Double.parseDouble(answer.get(i + 1)), y = 0;
                     if(!Arrays.equals(options, symbolOperators)) y = Double.parseDouble(answer.get(i - 1));
                     switch(answer.get(i)){
                         // Normal Operations
-                        case "+" -> sum = y + x;
-                        case "-" -> sum = y - x;
-                        case "*" -> sum = y * x;
-                        case "/" -> sum = y / x;
-                        case "^" -> sum = Math.pow(y, x);
-                        case "√" -> sum = Math.pow(x, 1.0/y);
+                        case "+" -> y += x;
+                        case "-" -> y -= x;
+                        case "*" -> y *= x;
+                        case "/" -> y /= x;
+                        case "^" -> y = Math.pow(y, x);
+                        case "√" -> y = Math.pow(x, 1.0/y);
                         // Trig and Log
-                        case "sin" -> sum = Math.round(Math.sin(Math.toRadians(x))*tenToTen)/tenToTen;
-                        case "cos" -> sum = Math.round(Math.cos(Math.toRadians(x))*tenToTen)/tenToTen;
-                        case "tan" -> sum = Math.round(Math.tan(Math.toRadians(x))*tenToTen)/tenToTen;
-                        case "sinh" -> sum = Math.sinh(x);
-                        case "cosh" -> sum = Math.cosh(x);
-                        case "tanh" -> sum = Math.tanh(x);
-                        case "log" -> sum = Math.log10(x);
-                        case "ln" -> sum = Math.log(x);
+                        case "sin" -> y = Math.round(Math.sin(Math.toRadians(x))*tenToTen)/tenToTen;
+                        case "cos" -> y = Math.round(Math.cos(Math.toRadians(x))*tenToTen)/tenToTen;
+                        case "tan" -> y = Math.round(Math.tan(Math.toRadians(x))*tenToTen)/tenToTen;
+                        case "sinh" -> y = Math.sinh(x);
+                        case "cosh" -> y = Math.cosh(x);
+                        case "tanh" -> y = Math.tanh(x);
+                        case "log" -> y = Math.log10(x);
+                        case "ln" -> y = Math.log(x);
                     }
-                    answer.set(i, "" + sum);
+                    answer.set(i, "" + y);
                     answer.remove(i + 1);
                     if(!Arrays.equals(options, symbolOperators)) answer.remove(i - 1);
                     break;
@@ -216,63 +207,22 @@ public class swingCalc{
         }
         return Double.parseDouble(answer.get(0)); 
     }
-    // Themed Calculator
-    private void themedCalculator(){
-        String[] textTiles = {"Starting Balance", "Interest Rate (In Decimals)", "k Property", "When did you start?", "c Property", "Complete"};
-        v = new double[]{Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE};
-        mainFrame.setTitle("Azeez's THEMED Calculator");
-        textCount = 1;
-        // Add to Panel
-        headerPanel.add(equalsLabel = new JLabel("Input a number for: Starting Balance"));
-        middlePanel.add(inputNumber = new JTextField(3));
-        middlePanel.add(enter = new JButton("ENTER"));
-        bottomPanel.add(equationLabel = new JLabel("a(b)^(k(x - h)) + c"));
-        mainFrame.setVisible(true);
-        // Action Listeners
-        enter.addActionListener((ActionEvent e) -> {
-            if(textCount >= 6){ // Reset Equation
-                equalsLabel.setText("Input a number for: " + textTiles[0]);
-                v = new double[]{Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE};
-                equationLabel.setText("a(b)^(k(x - h)) + c");
-                enter.setText("ENTER");
-                textCount = 1;
-                return;
-            }
-            for(int i = 0; i < v.length; i++){ // Adds each value to array
-                if(v[i] == Integer.MAX_VALUE){
-                    try{
-                        v[i] = Double.parseDouble(inputNumber.getText());
-                        inputNumber.setText("");
-                        equalsLabel.setText("Input a number for: " + textTiles[textCount++]);
-                    }catch(NumberFormatException a){}
-                    break;
-                }
-            }
-            if(v[v.length-1] != Integer.MAX_VALUE){ // When all values are inputted
-                enter.setText("RESET");
-                equationLabel.setText(String.format("%.2f(%.2f)^(%.2f(x - %.2f)) - %.2f", v[0], v[1], v[2], v[3], v[4])+ " = " + (v[0] * Math.pow(v[1], v[2] * (0.0 - v[3])) + v[4]));
-            }
-        });
-    }
+    // Conversion Calculator
     private void conversionCalculator(){
         mainFrame.setTitle("Azeez's Conversion Calculator");
+        String[] normal = {"kg → lbs", "m → ft", "km → miles", "°C → °F"}, flipped = {"kg ← lbs", "m ← ft", "km ← miles", "°C ← °F"};
         checkOperation = false;
         textCount = 0;
-        // Convert Selector
-        JComboBox operationSelector = new JComboBox(new String[]{"kg → lbs", "m → ft", "km → miles", "°C → °F"});
-        operationSelector.setSelectedIndex(0);
-        operationSelector.addActionListener((ActionEvent e) -> {textCount = operationSelector.getSelectedIndex();});
-        // Reverser and Enter Buttons
-        JButton reverser = new JButton("Reverse Operation");
         // Add to Panel
+        JButton reverser = new JButton("Reverse Operation");
         headerPanel.add(equalsLabel = new JLabel("Convert from"));
-        headerPanel.add(operationSelector);
+        headerPanel.add(operationSelector = new JComboBox(normal));
         headerPanel.add(reverser);
         middlePanel.add(inputNumber = new JTextField(3));
         middlePanel.add(enter = new JButton("ENTER"));
         bottomPanel.add(equationLabel = new JLabel("0.0"));
-        mainFrame.setVisible(true);
         // Action Listeners
+        operationSelector.addActionListener((ActionEvent e) -> {textCount = operationSelector.getSelectedIndex();});
         enter.addActionListener((ActionEvent e) -> {
             try{temp = Double.parseDouble(inputNumber.getText());}
             catch(NumberFormatException a){temp = 0;}
@@ -280,24 +230,25 @@ public class swingCalc{
                 case 0 /*kg to lbs*/ -> temp *= 2.205;
                 case 1 /*meters to ft*/ -> temp *= 3.281;
                 case 2 /*km to miles*/ -> temp /= 1.609;
-                case 3 /*Celsius to Fahrenheit*/ -> temp = (temp * 9.0/5.0) + 32;
+                case 3 /*Celsius to Fahrenheit*/ -> temp = (temp * (9.0/5.0)) + 32;
                 default -> temp = 0;
             }
             else switch(textCount){
                 case 0 /*lbs to kg*/ -> temp /= 2.205;
                 case 1 /*ft to meters*/ -> temp /= 3.281;
                 case 2 /*miles to km*/ -> temp *= 1.609;
-                case 3 /*Fahrenheit to Celsius*/ -> temp = (temp - 32) * 5.0/9.0;
+                case 3 /*Fahrenheit to Celsius*/ -> temp = (temp - 32) * (5.0/9.0);
                 default -> temp = 0;
             }
             equationLabel.setText("" + Math.round(temp*tenToTen)/tenToTen);
             mainFrame.revalidate(); // Resets mainFrame
         });
         reverser.addActionListener((ActionEvent e) -> {
-            if(checkOperation = !checkOperation) operationSelector.setModel(new DefaultComboBoxModel(new String[]{"kg ← lbs", "m ← ft", "km ← miles", "°C ← °F"}));
-            else operationSelector.setModel(new DefaultComboBoxModel(new String[]{"kg → lbs", "m → ft", "km → miles", "°C → °F"}));
+            if(checkOperation = !checkOperation) operationSelector.setModel(new DefaultComboBoxModel(flipped));
+            else operationSelector.setModel(new DefaultComboBoxModel(normal));
             operationSelector.setSelectedIndex(textCount);
             mainFrame.revalidate(); // Resets mainFrame
         });
+        mainFrame.setVisible(true);
     }
 }
