@@ -40,11 +40,13 @@ public class swingCalc{
     // Login Details
     private void loginWindow(){
         mainFrame.setSize(400,250);
-        ArrayList<String> users = new ArrayList<>();
-        try(BufferedReader buffRead = new BufferedReader(new FileReader("users.txt"))){ // Add acccounts from users.txt
+        HashMap<String,String> users = new HashMap<>();
+        try(BufferedReader buffReadUser = new BufferedReader(new FileReader("users.txt"))){ // Add acccounts from users.txt
+            BufferedReader buffReadPass = new BufferedReader(new FileReader("pass.txt"));
             String line;
-            while ((line = buffRead.readLine()) != null) users.add(line);
-            buffRead.close();
+            while ((line = buffReadUser.readLine()) != null) users.put(line,buffReadPass.readLine());
+            buffReadUser.close();
+            buffReadPass.close();
         }catch (FileNotFoundException e) {System.out.println("File not found");}
         catch (IOException ex) {Logger.getLogger(swingCalc.class.getName()).log(Level.SEVERE, null, ex);}
         // Username and Password
@@ -56,7 +58,7 @@ public class swingCalc{
         JLabel loggedIn = new JLabel("Not logged in.");
         login.addActionListener((ActionEvent e) -> {
             if(fails == 0) return;
-            for(String i:users){
+            for(String i:users.keySet()){
                 if(username.getText().equals(i)){
                     loggedIn.setText("Logged in.");
                     String[] options = {"Normal", "Conversion", "None"};
@@ -69,7 +71,8 @@ public class swingCalc{
                     fails = 0;
                     break;
                 }
-            }if(fails != 0){
+            }
+            if(fails != 0){
                 loggedIn.setText((3 - fails) + " attempts left.");
                 if (fails++ >= 3){
                     JOptionPane.showMessageDialog(mainFrame, "You ran out of login attempts.\nPress OK to leave the program.");
@@ -79,15 +82,28 @@ public class swingCalc{
         });
         newAccount.addActionListener((ActionEvent e) -> {
             if(fails == 0) return;
-            for(String i:users) if(username.getText().equals(i)){
-                loggedIn.setText(username.getText() + " is already an option.");
-                return;
-            }try(BufferedWriter buffWrite = new BufferedWriter(new FileWriter("users.txt"))){
-                for (String item:users) buffWrite.write(item + "\n");
-                buffWrite.write(username.getText());
-                users.add(username.getText());
-                buffWrite.close();
+            for(String i:users.keySet()){
+                if(username.getText().equals(i)){
+                    loggedIn.setText(username.getText() + " is already an option.");
+                    return;
+                }else if(username.getText().equals("")||(new String(password.getPassword())).equals("")){
+                    loggedIn.setText("Username and password can't be blank.");
+                    return;
+                }
+            }
+            try{
+                BufferedWriter buffWriteUser = new BufferedWriter(new FileWriter("users.txt")),
+                buffWritePass = new BufferedWriter(new FileWriter("pass.txt"));
+                for (String item:users.keySet()) buffWriteUser.write(item + "\n");
+                for (String item:users.values()) buffWritePass.write(item + "\n");
+                buffWriteUser.write(username.getText());
+                buffWritePass.write(new String(password.getPassword()));
+                users.put(username.getText(),new String(password.getPassword()));
+                buffWriteUser.close();
+                buffWritePass.close();
                 loggedIn.setText(username.getText() + " was added.");
+                username.setText("");
+                password.setText("");
             }catch (FileNotFoundException a) {System.out.println("File not found");} 
             catch (IOException t) {Logger.getLogger(swingCalc.class.getName()).log(Level.SEVERE, null, t);}
         });
