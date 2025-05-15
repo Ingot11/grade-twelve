@@ -16,7 +16,7 @@ public class swingCalc{
     private JComboBox operationSelector;
     private JTextField inputNumber;
     private boolean checkOperation;
-    private int textCount, fails;
+    private int operationIndex, fails;
     private String equation;
     private JButton enter;
     private double temp;
@@ -210,9 +210,9 @@ public class swingCalc{
     // Conversion Calculator
     private void conversionCalculator(){
         mainFrame.setTitle("Azeez's Conversion Calculator");
-        String[] normal = {"kg → lbs", "m → ft", "km → miles", "°C → °F"}, flipped = {"kg ← lbs", "m ← ft", "km ← miles", "°C ← °F"};
+        String[] normal = {"kg → lbs", "m → ft", "km → miles", "°C → °F", "tbsp → mL"}, flipped = {"kg ← lbs", "m ← ft", "km ← miles", "°C ← °F", "tbsp ← mL"};
         checkOperation = false;
-        textCount = 0;
+        operationIndex = 0;
         // Add to Panel
         JButton reverser = new JButton("Reverse Operation");
         headerPanel.add(equalsLabel = new JLabel("Convert from"));
@@ -222,22 +222,24 @@ public class swingCalc{
         middlePanel.add(enter = new JButton("ENTER"));
         bottomPanel.add(equationLabel = new JLabel("0.0"));
         // Action Listeners
-        operationSelector.addActionListener((ActionEvent e) -> {textCount = operationSelector.getSelectedIndex();});
+        operationSelector.addActionListener((ActionEvent e) -> {operationIndex = operationSelector.getSelectedIndex();});
         enter.addActionListener((ActionEvent e) -> {
             try{temp = Double.parseDouble(inputNumber.getText());}
             catch(NumberFormatException a){temp = 0;}
-            if(!checkOperation) switch(textCount){
+            if(!checkOperation) switch(operationIndex){
                 case 0 /*kg to lbs*/ -> temp *= 2.205;
                 case 1 /*meters to ft*/ -> temp *= 3.281;
                 case 2 /*km to miles*/ -> temp /= 1.609;
                 case 3 /*Celsius to Fahrenheit*/ -> temp = (temp * (9.0/5.0)) + 32;
+                case 4 /*tbsp to mL*/ -> temp *= 14.787;
                 default -> temp = 0;
             }
-            else switch(textCount){
+            else switch(operationIndex){
                 case 0 /*lbs to kg*/ -> temp /= 2.205;
                 case 1 /*ft to meters*/ -> temp /= 3.281;
                 case 2 /*miles to km*/ -> temp *= 1.609;
                 case 3 /*Fahrenheit to Celsius*/ -> temp = (temp - 32) * (5.0/9.0);
+                case 4 /*mL to tbsp*/ -> temp /= 14.787;
                 default -> temp = 0;
             }
             equationLabel.setText("" + Math.round(temp*tenToTen)/tenToTen);
@@ -246,7 +248,7 @@ public class swingCalc{
         reverser.addActionListener((ActionEvent e) -> {
             if(checkOperation = !checkOperation) operationSelector.setModel(new DefaultComboBoxModel(flipped));
             else operationSelector.setModel(new DefaultComboBoxModel(normal));
-            operationSelector.setSelectedIndex(textCount);
+            operationSelector.setSelectedIndex(operationIndex);
             mainFrame.revalidate(); // Resets mainFrame
         });
         mainFrame.setVisible(true);
