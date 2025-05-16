@@ -1,5 +1,6 @@
-/*Calculator using Java Swing
- * Azeez Bazara
+/*
+ * Calculator using Java Swing
+ * Coded by Azeez Bazara
 */
 import java.io.*;
 import java.awt.*;
@@ -9,20 +10,21 @@ import java.awt.event.*;
 import java.util.logging.*;
 public class swingCalc{
    // Variables
-    private final JFrame mainFrame;
     private final JPanel headerPanel, middlePanel, bottomPanel;
-    private final double tenToTen = Math.pow(10,10); // Used to round trig due to inconcistency
+    private final double tenToTen = Math.pow(10,10); // Used to round trig and other stuff due to inconcistency
+    private final JFrame mainFrame;
+    public static swingCalc logs;
     private JLabel equalsLabel, equationLabel;
     private JComboBox operationSelector;
+    private double temp, previousAnswer;
+    private int operationIndex, fails;
     private JTextField inputNumber;
     private boolean checkOperation;
-    private int operationIndex, fails;
     private String equation;
     private JButton enter;
-    private double temp;
     // Call Window
     public static void main(String[] args){
-        swingCalc logs = new swingCalc();
+        logs = new swingCalc();
         logs.loginWindow();
     }
     // Window Constructor
@@ -31,7 +33,6 @@ public class swingCalc{
         mainFrame = new JFrame("Azeez's SWING Tester");
         mainFrame.setSize(600,200);
         mainFrame.setLayout(new GridLayout(3, 1));
-        mainFrame.addWindowListener(new WindowAdapter() {public void windowClosing(WindowEvent windowEvent) {System.exit(0);}});
         // Add Panels
         mainFrame.add(headerPanel = new JPanel(new FlowLayout()));
         mainFrame.add(middlePanel = new JPanel(new FlowLayout()));
@@ -40,11 +41,13 @@ public class swingCalc{
     // Login Details
     private void loginWindow(){
         mainFrame.setSize(400,250);
+        mainFrame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent windowEvent) {System.exit(0);}});
         HashMap<String,String> users = new HashMap<>();
         try(BufferedReader buffReadUser = new BufferedReader(new FileReader("users.txt"))){ // Add acccounts from users.txt
             BufferedReader buffReadPass = new BufferedReader(new FileReader("pass.txt"));
             String line;
-            while ((line = buffReadUser.readLine()) != null) users.put(line,buffReadPass.readLine());
+            while ((line = buffReadUser.readLine()) != null) users.put(line, buffReadPass.readLine());
             buffReadUser.close();
             buffReadPass.close();
         }catch (FileNotFoundException e) {System.out.println("File not found");}
@@ -66,7 +69,7 @@ public class swingCalc{
                     switch (JOptionPane.showOptionDialog(mainFrame, "Choose the Type of Calculator", "Calculator Select", 1, 1, null, options, options[0])) {
                         case 0 /*Normal*/ -> calc.normalCalculator();
                         case 1 /*Conversion*/ -> calc.conversionCalculator();
-                        default /*End*/ -> System.exit(0);
+                        default /*End Program*/ -> System.exit(0);
                     }
                     fails = 0;
                     break;
@@ -75,8 +78,8 @@ public class swingCalc{
             if(fails != 0){
                 loggedIn.setText((3 - fails) + " attempts left.");
                 if (fails++ >= 3){
-                    JOptionPane.showMessageDialog(mainFrame, "You ran out of login attempts.\nPress OK to leave the program.");
-                    System.exit(0);
+                    if(JOptionPane.showOptionDialog(mainFrame, "You ran out of login attemepts.\nPress OK to exit", "Login fail", 0, 1, null, new String[]{"OK","Cancel"}, "OK") == 0) System.exit(0);
+                    fails = 0;
                 }
             }
         });
@@ -86,7 +89,7 @@ public class swingCalc{
                 if(username.getText().equals(i)){
                     loggedIn.setText(username.getText() + " is already an option.");
                     return;
-                }else if(username.getText().equals("")||(new String(password.getPassword())).equals("")){
+                }if(username.getText().equals("")||(new String(password.getPassword())).equals("")){
                     loggedIn.setText("Username and password can't be blank.");
                     return;
                 }
@@ -118,10 +121,15 @@ public class swingCalc{
     }
     // Normal Calculator
     private void normalCalculator(){
-        equation = "";
         checkOperation = true;
+        equation = "";
         mainFrame.setTitle("Azeez's Calculator");
+        // Makes login work when calculator is closed
+        mainFrame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent windowEvent) {logs.fails = 1;}
+        });
         headerPanel.add(inputNumber = new JTextField(3));
+        // ArrayLists to store operators
         ArrayList<JButton> operates = new ArrayList<>(),
         trig = new ArrayList<>(),
         logarithims = new ArrayList<>(),
@@ -135,7 +143,7 @@ public class swingCalc{
         // Other operations : log(x), ln(x)
         for(String i : new String[]{"log(x)","ln(x)"}) logarithims.add(new JButton(i));
         for(JButton i : logarithims) i.addActionListener((ActionEvent e) -> {symbolOperation(i.getText());});
-        // Add to All List
+        // Add to All Operator List
         allOperates.addAll(operates);
         allOperates.addAll(trig);
         allOperates.addAll(logarithims);
@@ -150,6 +158,7 @@ public class swingCalc{
         bottomPanel.add(equationLabel = new JLabel("Input a Number"));
         bottomPanel.add(enter = new JButton("="));
         bottomPanel.add(equalsLabel = new JLabel("Answer"));
+        // Add Action Listeners
         enter.addActionListener((ActionEvent e) -> {mainOperation("");});
         operationSelector.addActionListener((ActionEvent e) -> {
             // Set all invisible
@@ -165,12 +174,17 @@ public class swingCalc{
     }
     private void mainOperation(String operation){ // Input Operation into equation
         try {
-            if(checkOperation) equation += Double.valueOf(inputNumber.getText()) + " ";
+            //Input previous answer in next calculation
+            String input = inputNumber.getText();
+            if(input.equals("ans") || input.equals("Ans")) input = "" + previousAnswer;
+            // Adds calculation to equation
+            if(checkOperation) equation += Double.valueOf(input) + " ";
             else checkOperation = true;
             equationLabel.setText(equation += operation + " ");
             // When equals is pressed, gives final answer
             if(operation.equals("")) {
-                equalsLabel.setText("" + calculate());
+                previousAnswer = calculate();
+                equalsLabel.setText("" + previousAnswer);
                 equation = "";
             }
             inputNumber.setText("");
@@ -178,7 +192,11 @@ public class swingCalc{
     }
     private void symbolOperation(String operation){ // Input Trig or other into equation
         try{if(checkOperation){
-            equationLabel.setText(equation += operation.substring(0,operation.length()-3) + " " + Double.valueOf(inputNumber.getText()) + " ");
+            //Input previous answer in next calculation
+            String input = inputNumber.getText();
+            if(input.equals("ans") || input.equals("Ans")) input = "" + previousAnswer;
+            // Adds calculation to equation
+            equationLabel.setText(equation += operation.substring(0,operation.length()-3) + " " + Double.valueOf(input) + " ");
             inputNumber.setText("");
             checkOperation = false;
         }}catch (NumberFormatException e) {} 
@@ -226,6 +244,10 @@ public class swingCalc{
     // Conversion Calculator
     private void conversionCalculator(){
         mainFrame.setTitle("Azeez's Conversion Calculator");
+        // Makes login work when calculator is closed
+        mainFrame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent windowEvent) {logs.fails = 1;}
+        });
         String[] normal = {"kg → lbs", "m → ft", "km → miles", "°C → °F", "tbsp → mL"}, flipped = {"kg ← lbs", "m ← ft", "km ← miles", "°C ← °F", "tbsp ← mL"};
         checkOperation = false;
         operationIndex = 0;
@@ -241,21 +263,21 @@ public class swingCalc{
         operationSelector.addActionListener((ActionEvent e) -> {operationIndex = operationSelector.getSelectedIndex();});
         enter.addActionListener((ActionEvent e) -> {
             try{temp = Double.parseDouble(inputNumber.getText());}
-            catch(NumberFormatException a){temp = 0;}
-            if(!checkOperation) switch(operationIndex){
-                case 0 /*kg to lbs*/ -> temp *= 2.205;
-                case 1 /*meters to ft*/ -> temp *= 3.281;
-                case 2 /*km to miles*/ -> temp /= 1.609;
-                case 3 /*Celsius to Fahrenheit*/ -> temp = (temp * (9.0/5.0)) + 32;
-                case 4 /*tbsp to mL*/ -> temp *= 14.787;
-                default -> temp = 0;
-            }
-            else switch(operationIndex){
+            catch(NumberFormatException a) {temp = 0;}
+            if(checkOperation) switch(operationIndex){
                 case 0 /*lbs to kg*/ -> temp /= 2.205;
                 case 1 /*ft to meters*/ -> temp /= 3.281;
                 case 2 /*miles to km*/ -> temp *= 1.609;
                 case 3 /*Fahrenheit to Celsius*/ -> temp = (temp - 32) * (5.0/9.0);
                 case 4 /*mL to tbsp*/ -> temp /= 14.787;
+                default -> temp = 0;
+            }
+            else switch(operationIndex){
+                case 0 /*kg to lbs*/ -> temp *= 2.205;
+                case 1 /*meters to ft*/ -> temp *= 3.281;
+                case 2 /*km to miles*/ -> temp /= 1.609;
+                case 3 /*Celsius to Fahrenheit*/ -> temp = (temp * (9.0/5.0)) + 32;
+                case 4 /*tbsp to mL*/ -> temp *= 14.787;
                 default -> temp = 0;
             }
             equationLabel.setText("" + Math.round(temp*tenToTen)/tenToTen);
