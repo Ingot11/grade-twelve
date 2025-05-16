@@ -42,10 +42,13 @@ public class swingCalc{
     private void loginWindow(){
         mainFrame.setSize(400,250);
         mainFrame.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowClosing(WindowEvent windowEvent) {System.exit(0);}});
         HashMap<String,String> users = new HashMap<>();
-        try(BufferedReader buffReadUser = new BufferedReader(new FileReader("users.txt"))){ // Add acccounts from users.txt
-            BufferedReader buffReadPass = new BufferedReader(new FileReader("pass.txt"));
+        // Add acccounts from users.txt
+        try{
+            BufferedReader buffReadUser = new BufferedReader(new FileReader("users.txt")),
+            buffReadPass = new BufferedReader(new FileReader("pass.txt"));
             String line;
             while ((line = buffReadUser.readLine()) != null) users.put(line, buffReadPass.readLine());
             buffReadUser.close();
@@ -62,7 +65,7 @@ public class swingCalc{
         login.addActionListener((ActionEvent e) -> {
             if(fails == 0) return;
             for(String i:users.keySet()){
-                if(username.getText().equals(i)){
+                if(username.getText().equals(i) && !(new String(password.getPassword())).equals("")){
                     loggedIn.setText("Logged in.");
                     String[] options = {"Normal", "Conversion", "None"};
                     swingCalc calc = new swingCalc();
@@ -78,7 +81,7 @@ public class swingCalc{
             if(fails != 0){
                 loggedIn.setText((3 - fails) + " attempts left.");
                 if (fails++ >= 3){
-                    if(JOptionPane.showOptionDialog(mainFrame, "You ran out of login attemepts.\nPress OK to exit", "Login fail", 0, 1, null, new String[]{"OK","Cancel"}, "OK") == 0) System.exit(0);
+                    if(JOptionPane.showOptionDialog(mainFrame, "You ran out of login attempts.\nPress OK to exit", "Login fail", 0, 1, null, new String[]{"OK","Cancel"}, "OK") == 0) System.exit(0);
                     fails = 0;
                 }
             }
@@ -94,6 +97,7 @@ public class swingCalc{
                     return;
                 }
             }
+            // Write to users.txt/pass.txt
             try{
                 BufferedWriter buffWriteUser = new BufferedWriter(new FileWriter("users.txt")),
                 buffWritePass = new BufferedWriter(new FileWriter("pass.txt"));
@@ -126,6 +130,7 @@ public class swingCalc{
         mainFrame.setTitle("Azeez's Calculator");
         // Makes login work when calculator is closed
         mainFrame.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowClosing(WindowEvent windowEvent) {logs.fails = 1;}
         });
         headerPanel.add(inputNumber = new JTextField(3));
@@ -246,6 +251,7 @@ public class swingCalc{
         mainFrame.setTitle("Azeez's Conversion Calculator");
         // Makes login work when calculator is closed
         mainFrame.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowClosing(WindowEvent windowEvent) {logs.fails = 1;}
         });
         String[] normal = {"kg → lbs", "m → ft", "km → miles", "°C → °F", "tbsp → mL"}, flipped = {"kg ← lbs", "m ← ft", "km ← miles", "°C ← °F", "tbsp ← mL"};
